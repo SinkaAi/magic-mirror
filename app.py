@@ -236,22 +236,14 @@ def analyze():
     # Send Discord notification
     notification_sent, notification_msg = send_discord_notification(filename)
     
-    # Run AI analysis SYNCHRONOUSLY (waits for result - no background thread issues)
-    print(f"Starting analysis for {filename}...")
-    success = analyze_with_llama_vision(filepath)
+    # Start automatic AI analysis in BACKGROUND (don't wait - causes timeout issues)
+    start_background_analysis(filename, filepath)
     
-    if success:
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'message': '✅ Analysis complete!'
-        })
-    else:
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'message': 'Image uploaded. Analysis may take a moment...'
-        })
+    return jsonify({
+        'success': True,
+        'filename': filename,
+        'message': 'Image uploaded! 🤖 Analyzing in background...'
+    })
 
 @app.route('/check/<filename>')
 def check_response(filename):
