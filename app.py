@@ -166,7 +166,7 @@ Score must be 1-10 integer. Reason must be 2-4 words. Tier must be one of: Avera
             "max_tokens": 2000
         }
         
-        response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=60)
+        response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=120)
         
         if response.status_code == 200:
             result = response.json()
