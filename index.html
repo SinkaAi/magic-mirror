@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Mirror</title>
+    <!-- Cursive fonts for the title -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            /* Apple-style colorful glass background */
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(255, 107, 107, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(147, 51, 234, 0.35) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 90%, rgba(59, 130, 246, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 10%, rgba(236, 72, 153, 0.3) 0%, transparent 40%),
+                radial-gradient(ellipse at 20% 80%, rgba(99, 102, 241, 0.35) 0%, transparent 50%),
+                linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            background-size: 200% 200%;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+            animation: bgShift 20s ease infinite;
+        }
+        
+        @keyframes bgShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            /* Subtle glass effect for the main content area */
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            /* Cursive style */
+            font-family: 'Playfair Display', 'Dancing Script', 'Great Vibes', cursive;
+            font-weight: 600;
+            font-style: italic;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 50%, #fff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        
+        /* Upload Section */
+        .upload-section {
+            /* Apple Glass Effect */
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.12) 0%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+            border-radius: 24px;
+            padding: 50px 40px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.08),
+                inset 0 0.5px 0.5px rgba(255, 255, 255, 0.15);
+        }
+        
+        .upload-section:hover {
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.18) 0%,
+                rgba(255, 255, 255, 0.08) 100%
+            );
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        
+        .upload-section.dragover {
+            background: linear-gradient(
+                180deg,
+                rgba(0, 212, 255, 0.2) 0%,
+                rgba(0, 212, 255, 0.1) 100%
+            );
+            border-color: rgba(0, 212, 255, 0.6);
+            border-style: solid;
+        }
+        
+        .upload-section.hidden {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .upload-hint {
+            color: #555;
+            font-size: 0.8rem;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        /* Preview Image */
+        .preview-section {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .preview-section.active {
+            display: block;
+        }
+        
+        #preview {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Buttons */
+        .btn {
+            /* Apple Glass Button - Premium Translucent */
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.35) 0%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 0.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
+            padding: 16px 40px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+            max-width: 200px;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.12),
+                0 4px 16px rgba(0, 0, 0, 0.08),
+                inset 0 0.5px 0.5px rgba(255, 255, 255, 0.4),
+                inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.5) 20%,
+                rgba(255, 255, 255, 0.5) 80%,
+                transparent
+            );
+            pointer-events: none;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.45) 0%,
+                rgba(255, 255, 255, 0.25) 50%,
+                rgba(255, 255, 255, 0.15) 100%
+            );
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.1),
+                inset 0 0.5px 0.5px rgba(255, 255, 255, 0.5),
+                inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.25) 0%,
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            box-shadow: 
+                0 1px 4px rgba(0, 0, 0, 0.1),
+                inset 0 0.5px 0.5px rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .btn-secondary, .btn-uniform {
+            /* Make all buttons uniform glass style */
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.12) 0%,
+                rgba(255, 255, 255, 0.06) 100%
+            );
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+        }
+        
+        .btn-secondary:hover, .btn-uniform:hover {
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        /* Close button - round with X */
+        .btn-close {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+        
+        .btn-close:hover {
+            background: rgba(255, 100, 100, 0.2);
+            border-color: rgba(255, 150, 150, 0.4);
+        }
+        
+        /* Results */
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Score Circle */
+        .v-score {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.4);
+        }
+        
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tier-average { background: #555; }
+        .tier-above-average { background: #4a90a4; }
+        .tier-attractive { background: #2d8a6e; }
+        .tier-highly-attractive { background: #6b4a9e; }
+        .tier-elite { background: #9e4a6b; }
+        .tier-exceptional { background: #9e6a4a; }
+        
+        /* Breakdown Cards */
+        .breakdown {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .category {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 18px;
+        }
+        
+        .category h3 {
+            color: #00d4ff;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-name {
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: capitalize;
+        }
+        
+        .item-score {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .score-1, .score-2, .score-3 { background: #8b0000; }
+        .score-4 { background: #8b4513; }
+        .score-5 { background: #555; }
+        .score-6 { background: #2d8a6e; }
+        .score-7 { background: #2d6a9e; }
+        .score-8 { background: #4a4a9e; }
+        .score-9 { background: #6b4a9e; }
+        .score-10 { background: #9e4a6b; }
+        
+        /* Explanation Box */
+        .explanation {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 3px solid #00d4ff;
+        }
+        
+        .explanation h4 {
+            color: #00d4ff;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .explanation p {
+            color: #bbb;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .strengths-weaknesses {
+            margin-top: 15px;
+        }
+        
+        .sw-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        .sw-icon {
+            font-size: 0.8rem;
+        }
+        
+        .sw-strength .sw-icon { color: #2d8a6e; }
+        .sw-weakness .sw-icon { color: #8b4513; }
+        
+        /* Overall Score */
+        .overall {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .overall-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-text {
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Magic Mirror</h1>
+        <p class="subtitle">AI Attractiveness Evaluation</p>
+        
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">📸</div>
+            <p class="upload-text">Tap to select a photo</p>
+            <p class="upload-hint">or press <strong>Ctrl+V</strong> to paste from clipboard</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        
+        <!-- Preview Section (replaces upload) -->
+        <div class="preview-section" id="previewSection">
+            <img id="preview" alt="Preview">
+        </div>
+        
+        <!-- Buttons -->
+        <div class="btn-container">
+            <button class="btn" id="analyzeBtn" disabled>Analyze</button>
+            <button class="btn btn-uniform" id="changeBtn">Change Photo</button>
+            <button class="btn btn-uniform btn-close" id="closeBtn" title="Close">✕</button>
+        </div>
+        
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p class="status-text">Analyzing...</p>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-section" id="results">
+            <div class="v-score">
+                <div class="score-circle" id="vScore">-</div>
+                <span class="tier-badge" id="tierBadge">-</span>
+            </div>
+            
+            <div class="breakdown" id="breakdown"></div>
+            
+            <div class="explanation" id="explanation">
+                <h4>Analysis Breakdown</h4>
+                <div id="explanationText"></div>
+            </div>
+            
+            <div class="overall">
+                <p>Overall V-Score</p>
+                <div class="overall-score" id="overallScore">-</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const uploadSection = document.getElementById('uploadSection');
+        const previewSection = document.getElementById('previewSection');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const changeBtn = document.getElementById('changeBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        
+        let currentFilename = '';
+        let currentAnalysis = null;
+        
+        // Upload click
+        uploadSection.addEventListener('click', () => fileInput.click());
+        
+        // Clipboard paste (Ctrl+V)
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        handleFile(file);
+                        return;
+                    }
+                }
+            }
+        });
+        
+        // Drag & drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+        
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                // Hide upload, show preview
+                uploadSection.classList.add('hidden');
+                previewSection.classList.add('active');
+                analyzeBtn.disabled = false;
+                results.classList.remove('active');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Change photo button
+        changeBtn.addEventListener('click', () => {
+            preview.src = '';
+            previewSection.classList.remove('active');
+            uploadSection.classList.remove('hidden');
+            analyzeBtn.disabled = true;
+            results.classList.remove('active');
+            fileInput.value = '';
+            currentFilename = '';
+            currentAnalysis = null;
+        });
+        
+        // Close button - closes the app (go back or show message)
+        closeBtn.addEventListener('click', () => {
+            // Clear everything and show upload section
+            preview.src = '';
+            previewSection.classList.remove('active');
+            uploadSection.classList.remove('hidden');
+            analyzeBtn.disabled = true;
+            changeBtn.disabled = false;
+            closeBtn.disabled = false;
+            results.classList.remove('active');
+            loading.classList.remove('active');
+            fileInput.value = '';
+            currentFilename = '';
+            currentAnalysis = null;
+            window.close();
+        });
+        
+        // Analyze button
+        analyzeBtn.addEventListener('click', async () => {
+            const imageData = preview.src;
+            
+            analyzeBtn.disabled = true;
+            changeBtn.disabled = true;
+            loading.classList.add('active');
+            results.classList.remove('active');
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentFilename = data.filename;
+                    pollForResults();
+                } else {
+                    alert('Error: ' + data.error);
+                    analyzeBtn.disabled = false;
+                    changeBtn.disabled = false;
+                    loading.classList.remove('active');
+                }
+            } catch (error) {
+                alert('Error uploading image');
+                analyzeBtn.disabled = false;
+                changeBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+        
+        // Poll for results
+        function pollForResults() {
+            let pollCount = 0;
+            const checkInterval = setInterval(async () => {
+                pollCount++;
+                
+                try {
+                    const response = await fetch(`/check/${currentFilename}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'done') {
+                        clearInterval(checkInterval);
+                        currentAnalysis = data.analysis;
+                        displayResults(data.analysis);
+                        loading.classList.remove('active');
+                        analyzeBtn.disabled = false;
+                        changeBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error checking results');
+                }
+                
+                // Timeout after 2 minutes (120 polling attempts at 1s)
+                if (pollCount >= 120) {
+                    clearInterval(checkInterval);
+                    loading.classList.remove('active');
+                    analyzeBtn.disabled = false;
+                    changeBtn.disabled = false;
+                    alert('Analysis timed out. The AI might be busy. Try again.');
+                }
+            }, 1000);
+        }
+        
+        function displayResults(analysis) {
+            results.classList.add('active');
+            
+            try {
+                const data = typeof analysis === 'string' ? JSON.parse(analysis) : analysis;
+                
+                // Calculate V-Score (overall is a number, not object)
+                const physicalOverall = data.physical_attributes?.overall || 0;
+                const styleOverall = data.style_presentation?.overall || 0;
+                const vScore = ((physicalOverall + styleOverall) / 2).toFixed(1);
+                document.getElementById('vScore').textContent = vScore;
+                
+                // Tier badge
+                const tier = data.final_notes?.tier || 'Average';
+                const tierBadge = document.getElementById('tierBadge');
+                tierBadge.textContent = tier;
+                tierBadge.className = 'tier-badge tier-' + tier.toLowerCase().replace(/ /g, '-');
+                
+                // Build breakdown HTML
+                let breakdownHTML = '';
+                
+                // Physical attributes
+                breakdownHTML += '<div class="category"><h3>Physical</h3>';
+                const physical = data.physical_attributes || {};
+                for (const [key, value] of Object.entries(physical)) {
+                    if (key !== 'overall') {
+                        const score = value.score ?? '-';
+                        const scoreClass = typeof score === 'number' ? `score-${Math.round(score)}` : '';
+                        breakdownHTML += `
+                            <div class="item">
+                                <span class="item-name">${key.replace(/_/g, ' ')}</span>
+                                <span class="item-score ${scoreClass}">${score}</span>
+                            </div>
+                        `;
+                    }
+                }
+                breakdownHTML += '</div>';
+                
+                // Style presentation
+                breakdownHTML += '<div class="category"><h3>Style</h3>';
+                const style = data.style_presentation || {};
+                for (const [key, value] of Object.entries(style)) {
+                    if (key !== 'overall') {
+                        const score = value.score ?? '-';
+                        const scoreClass = typeof score === 'number' ? `score-${Math.round(score)}` : '';
+                        breakdownHTML += `
+                            <div class="item">
+                                <span class="item-name">${key.replace(/_/g, ' ')}</span>
+                                <span class="item-score ${scoreClass}">${score}</span>
+                            </div>
+                        `;
+                    }
+                }
+                breakdownHTML += '</div>';
+                
+                document.getElementById('breakdown').innerHTML = breakdownHTML;
+                
+                // Build explanation text
+                let explanationHTML = '';
+                
+                // Add reasons for each category
+                explanationHTML += '<p><strong>Physical Analysis:</strong></p><p>';
+                for (const [key, value] of Object.entries(physical)) {
+                    if (key !== 'overall' && value.reason) {
+                        explanationHTML += `• ${key.replace(/_/g, ' ')}: ${value.reason}<br>`;
+                    }
+                }
+                explanationHTML += '</p>';
+                
+                explanationHTML += '<p><strong>Style Analysis:</strong></p><p>';
+                for (const [key, value] of Object.entries(style)) {
+                    if (key !== 'overall' && value.reason) {
+                        explanationHTML += `• ${key.replace(/_/g, ' ')}: ${value.reason}<br>`;
+                    }
+                }
+                explanationHTML += '</p>';
+                
+                // Strengths & Weaknesses
+                if (data.final_notes) {
+                    explanationHTML += '<div class="strengths-weaknesses">';
+                    
+                    if (data.final_notes.strengths && data.final_notes.strengths.length) {
+                        data.final_notes.strengths.forEach(s => {
+                            explanationHTML += `<div class="sw-item sw-strength"><span class="sw-icon">✓</span><span>${s}</span></div>`;
+                        });
+                    }
+                    
+                    if (data.final_notes.weaknesses && data.final_notes.weaknesses.length) {
+                        data.final_notes.weaknesses.forEach(w => {
+                            explanationHTML += `<div class="sw-item sw-weakness"><span class="sw-icon">✗</span><span>${w}</span></div>`;
+                        });
+                    }
+                    
+                    explanationHTML += '</div>';
+                }
+                
+                document.getElementById('explanationText').innerHTML = explanationHTML;
+                
+                // Overall score
+                document.getElementById('overallScore').textContent = vScore;
+                
+            } catch (error) {
+                document.getElementById('explanationText').innerHTML = '<p>Error parsing analysis. Please try again.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
