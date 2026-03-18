@@ -28,7 +28,13 @@ RESPONSES_DIR = 'responses'
 os.makedirs(RESPONSES_DIR, exist_ok=True)
 
 # OpenRouter API for auto-analysis (Llama 3.2 Vision - essentially free!)
-OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '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')
+# IMPORTANT: Set this as an environment variable in production!
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+
+# Fallback for development only - remove in production!
+if not OPENROUTER_API_KEY:
+    OPENROUTER_API_KEY = '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'
+
 OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 # Discord webhook - set via environment variable or edit here
